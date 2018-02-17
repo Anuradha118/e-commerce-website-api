@@ -8,6 +8,7 @@ const passport = require('passport');
 const mongoStore=require('connect-mongo')(session);
 var app=express();
 var {mongoose}=mongoose=require('./db/mongoose');
+var responseGenerator=require('./mvcApp/libs/responseGenerator');
 require('./middleware/passport')(passport);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -50,18 +51,12 @@ fs.readdirSync('./mvcApp/controllers').forEach((file)=>{
         }
     }
 });
-// var userRoute=require('./mvcApp/controllers/users');
-// userRoute.controller(app,passport);
-
-// var productRoute=require('./mvcApp/controllers/products');
-// productRoute.productController(app);
-
-// var cartRoute=require('./mvcApp/controllers/cart');
-// cartRoute.cartController(app);
 
 
 app.get("/", function(req, res) {
-    res.render('index.ejs');
+    // res.render('index.ejs');
+    var myResponse=responseGenerator.generate(false,"Welcome to Ekart",200,null);
+    res.send(myResponse);
 });
 
 
