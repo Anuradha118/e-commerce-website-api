@@ -23,7 +23,6 @@ app.use(passport.initialize());
 app.use(passport.session()); 
 app.use(function(req,res,next){
     // saved the values in locals to use the same in view page
-    res.locals.login=req.isAuthenticated();
     res.locals.session=req.session;
     next();
 });

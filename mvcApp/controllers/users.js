@@ -1,17 +1,15 @@
-require('./../../config/config');
 const express=require('express');
 const userRouter=express.Router();
 const jwt=require('jsonwebtoken');
 var nodemailer = require('nodemailer');
 var sgTransport = require('nodemailer-sendgrid-transport');
-var {mongoose}=require('./../../db/mongoose');
 var {User}=require('./../models/User');
 var configAuth=require('./../../config/auth');
 var responseGenerator=require('./../libs/responseGenerator');
 
 module.exports.controller=function(app,passport){
     
-
+    var myResponse;
     var options = {
         auth: {
             api_user: configAuth.sendgridAuth.SENDGRID_USER,
@@ -31,12 +29,12 @@ module.exports.controller=function(app,passport){
             user.local.temporarytoken=user.generateToken();
             if(req.body.username==null||req.body.username==""||req.body.email==null||req.body.email==""||req.body.password==null||req.body.password==""){
                 // res.render('signup.ejs', { message: 'Ensure Username, email and password is provided or not empty string.' });
-                var myResponse=responseGenerator.generate(true,"Ensure Username, email and password is provided or not empty string.",400,null);
+                myResponse=responseGenerator.generate(true,"Ensure Username, email and password is provided or not empty string.",400,null);
                 res.send(myResponse);
             }else{
                 user.save(function(err){
                     if(err){
-                        var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                        myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                         res.send(myResponse);
                     }else{
                         var token=user.generateToken();
@@ -51,7 +49,7 @@ module.exports.controller=function(app,passport){
                             client.sendMail(email, function(err, info){
                                 if (err ){
                                 console.log(err);
-                                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                                 res.send(myResponse);
                                 }
                                 else {
@@ -59,7 +57,7 @@ module.exports.controller=function(app,passport){
                                 }
                             });
                             // res.render('signup.ejs', {user:user,message:'User Registered! Please check your email for actiation link.',token:token});
-                            var myResponse=responseGenerator.generate(false,"User Registered! Please check your email for actiation link.",200,{user:user,token:token});
+                            myResponse=responseGenerator.generate(false,"User Registered! Please check your email for actiation link.",200,{user:user,token:token});
                             res.send(myResponse);
                     }
                 });
@@ -80,16 +78,16 @@ module.exports.controller=function(app,passport){
     userRouter.put('/activate/:token',function(req,res){
         User.findOne({'local.temporarytoken':req.params.token},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             var token=req.params.token;
             jwt.verify(token,process.env.JWT_SECRET,function(err,decoded){
                 if(err){
-                    var myResponse=responseGenerator.generate(true,"Activation link has expired.",404,null);
+                    myResponse=responseGenerator.generate(true,"Activation link has expired.",404,null);
                     res.send(myResponse);
                 }else if(!user){
-                    var myResponse=responseGenerator.generate(true,"Activation link has expired.",404,null);
+                    myResponse=responseGenerator.generate(true,"Activation link has expired.",404,null);
                     res.send(myResponse);
                 }else{
                     user.local.temporarytoken=false;
@@ -113,7 +111,7 @@ module.exports.controller=function(app,passport){
                                     console.log('Message sent: ' + info.message);
                                     }
                                 });
-                            var myResponse=responseGenerator.generate(false,"Account activated.",200,{success:true});
+                                myResponse=responseGenerator.generate(false,"Account activated.",200,{success:true});
                             res.send(myResponse);
                         }
                     })
@@ -127,27 +125,27 @@ module.exports.controller=function(app,passport){
     userRouter.post('/login',function(req,res){
         User.findOne({'local.username':req.body.username},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             if(!user){
                 // res.render('login.ejs', { success:false,message:"User doesn't exist" });
-                var myResponse=responseGenerator.generate(true,"User doesn't exist",404,null);
+                myResponse=responseGenerator.generate(true,"User doesn't exist",404,null);
                 res.send(myResponse);
             }else if(user){
                 var validPassword=user.validPassword(req.body.password);
                 if(!validPassword){
                     // res.render('login.ejs', {success:false,message:"Wrong Password or Password didn't match"});
-                    var myResponse=responseGenerator.generate(true,"Wrong Password or Password didn't match",404,null);
+                    myResponse=responseGenerator.generate(true,"Wrong Password or Password didn't match",403,null);
                     res.send(myResponse);                    
                 }else if(!user.local.active){
                     // res.render('login.ejs', {sucess:false,message:'Account is not yet activated. Pleaase check your email for your activation link.',expired:true});
-                    var myResponse=responseGenerator.generate(true,"Account is not yet activated. Pleaase check your email for your activation link.",404,{expired:true});
+                    myResponse=responseGenerator.generate(true,"Account is not yet activated. Pleaase check your email for your activation link.",404,{expired:true});
                     res.send(myResponse);
                 }else{
                     var token=user.generateToken();
                     // res.render('login.ejs', {success:true,message:"Login Successful",user:user,token:token});
-                    var myResponse=responseGenerator.generate(false,"Login Successful.",200,{user:user,token:token});
+                    myResponse=responseGenerator.generate(false,"Login Successful.",200,{user:user,token:token});
                     res.send(myResponse);
                 }
             }
@@ -163,22 +161,22 @@ module.exports.controller=function(app,passport){
     userRouter.post('/resend',function(req,res){
         User.findOne({'local.username':req.body.username},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             if(!user){
-                var myResponse=responseGenerator.generate(true,"User doesn't exist",404,null);
+                myResponse=responseGenerator.generate(true,"User doesn't exist",404,null);
                 res.send(myResponse);
             }else if(user){
                 var validPassword=user.validPassword(req.body.password);
                 if(!validPassword){
-                    var myResponse=responseGenerator.generate(true,"Wrong Password or Password didn't match",404,null);
+                    myResponse=responseGenerator.generate(true,"Wrong Password or Password didn't match",403,null);
                     res.send(myResponse);
                 }else if(user.active){
-                    var myResponse=responseGenerator.generate(true,"Wrong Password or Password didn't match",404,null);
+                    myResponse=responseGenerator.generate(true,"Wrong Password or Password didn't match",403,null);
                     res.send(myResponse);
                 }else{
-                    var myResponse=responseGenerator.generate(false,"User exists",200,user);
+                    myResponse=responseGenerator.generate(false,"User exists",200,user);
                     res.send(myResponse);
                 }
             }
@@ -189,13 +187,13 @@ module.exports.controller=function(app,passport){
     userRouter.put('/resend',function(req,res){
         User.findOne({'local.username':req.body.username},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             user.local.temporarytoken=user.generateToken();
             user.save(function(err){
                 if(err){
-                    var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                    myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                     res.send(myResponse);
                 }
                 else{
@@ -216,7 +214,7 @@ module.exports.controller=function(app,passport){
                             console.log('Message sent: ' + info.message);
                             }
                         });
-                    var myResponse=responseGenerator.generate(false,'Activation link has been sent to '+ user.local.email+ '!',200,null);
+                        myResponse=responseGenerator.generate(false,'Activation link has been sent to '+ user.local.email+ '!',200,null);
                     res.send(myResponse);
                 }
             })
@@ -227,14 +225,14 @@ module.exports.controller=function(app,passport){
     userRouter.post('/checkusername',function(req,res){
         User.findOne({'local.username':req.body.username},function(req,res){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             if(user){
-                var myResponse=responseGenerator.generate(true,"Username is already taken",400,null);
+                myResponse=responseGenerator.generate(true,"Username is already taken",400,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Username is valid",200,null);
+                myResponse=responseGenerator.generate(false,"Username is valid",200,null);
                 res.send(myResponse);
             }
         })
@@ -247,14 +245,14 @@ module.exports.controller=function(app,passport){
             {'facebook.mailid':req.body.email},
             {'google.mailid':req.body.eamil}]},function(req,res){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             if(user){
-                var myResponse=responseGenerator.generate(true,"Email is already taken",400,null);
+                myResponse=responseGenerator.generate(true,"Email is already taken",400,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Email is valid",200,null);
+                myResponse=responseGenerator.generate(false,"Email is valid",200,null);
                 res.send(myResponse);
             }
         })
@@ -264,18 +262,18 @@ module.exports.controller=function(app,passport){
     userRouter.get('/resetusername/:email',function(req,res){
         User.findOne({'local.email':req.params.email},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }else{
                 if(!req.params.email){
-                    var myResponse=responseGenerator.generate(true,"No E-mail was provided.",400,null);
+                    myResponse=responseGenerator.generate(true,"No E-mail was provided.",400,null);
                     res.send(myResponse);
                 }else{
                     if(!user){
-                        var myResponse=responseGenerator.generate(true,"E-mail was not found.",404,null);
+                        myResponse=responseGenerator.generate(true,"E-mail was not found.",404,null);
                         res.send(myResponse);
                     }else if(!user.local.active){
-                        var myResponse=responseGenerator.generate(true,"Account has not yet been activated.",404,null);
+                        myResponse=responseGenerator.generate(true,"Account has not yet been activated.",404,null);
                         res.send(myResponse);
                     }else{
                         var email = {
@@ -293,7 +291,7 @@ module.exports.controller=function(app,passport){
                             console.log('Message sent: ' + info.message);
                             }
                         });
-                        var myResponse=responseGenerator.generate(false,"Username has been sent to e-mail.",200,null);
+                        myResponse=responseGenerator.generate(false,"Username has been sent to e-mail.",200,null);
                         res.send(myResponse);
                     } 
                 }
@@ -311,22 +309,22 @@ module.exports.controller=function(app,passport){
     userRouter.put('/resetpassword',function(req,res){
         User.findOne({'local.username':req.body.username},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             if(!user){
-                var myResponse=responseGenerator.generate(true,"Username was not found.",404,null);
+                myResponse=responseGenerator.generate(true,"Username was not found.",404,null);
                 res.send(myResponse);
                 // res.render('resetpassword.ejs', {success:false,message:'Username was not found'});
             }else if(!user.local.active){
-                var myResponse=responseGenerator.generate(true,"Account has not yet been activated.",404,null);
+                myResponse=responseGenerator.generate(true,"Account has not yet been activated.",404,null);
                 res.send(myResponse);
                 // res.render('resetpassword.ejs', {success:false,message:'Account has not yet been activated'});                
             }else{
                 user.local.resettoken=user.generateToken();
                 user.save(function(err){
                     if(err){
-                        var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                        myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                         res.send(myResponse);
                     }else{
                         var email = {
@@ -344,7 +342,7 @@ module.exports.controller=function(app,passport){
                             console.log('Message sent: ' + info.message);
                             }
                         });
-                        var myResponse=responseGenerator.generate(false,"Please check your e-mail for password reset link.",200,null);
+                        myResponse=responseGenerator.generate(false,"Please check your e-mail for password reset link.",200,null);
                         res.send(myResponse);
                         // res.render('resetpassword.ejs', {success:true,message:'Please check your e-mail for password reset link.'});
                         
@@ -358,22 +356,22 @@ module.exports.controller=function(app,passport){
     userRouter.get('/resetpassword/:token',function(req,res){
         User.findOne({'local.resettoken':req.params.token},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             var token=req.params.token;
             jwt.verify(token,process.env.JWT_SECRET,function(err,decoded){
                 if(err){
-                    var myResponse=responseGenerator.generate(true,"Password link has expired.",400,null);
+                    myResponse=responseGenerator.generate(true,"Password link has expired.",400,null);
                     res.send(myResponse);
                     // res.render('newpassword.ejs',{success:false,message:'Password link has expired.'});
                 }else{
                     if(!user){
-                        var myResponse=responseGenerator.generate(true,"Password link has expired.",400,null);
+                        myResponse=responseGenerator.generate(true,"Password link has expired.",400,null);
                         res.send(myResponse);
                         // res.render('newpassword.ejs',{success:false,message:'Password link has expired.'});                           
                     }else{
-                        var myResponse=responseGenerator.generate(false,"Please enter the password.",200,user);
+                        myResponse=responseGenerator.generate(false,"Please enter the password.",200,user);
                         res.send(myResponse);
                         // res.render('newpassword.ejs',{success:true,user:user,message:'Please enter the password'});
                     }
@@ -386,7 +384,7 @@ module.exports.controller=function(app,passport){
     userRouter.put('/savepassword',function(req,res){
         User.findOne({'local.username':req.body.username},function(err,user){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }
             if(req.body.password!=null||req.body.password==''){
@@ -394,7 +392,7 @@ module.exports.controller=function(app,passport){
                 user.local.resettoken=false;
                 user.save(function(err){
                     if(err){
-                        var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                        myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                         res.send(myResponse);
                     }else{
                         var email = {
@@ -412,12 +410,12 @@ module.exports.controller=function(app,passport){
                             console.log('Message sent: ' + info.message);
                             }
                         });
-                        var myResponse=responseGenerator.generate(false,"Password has been reset!",200,null);
+                        myResponse=responseGenerator.generate(false,"Password has been reset!",200,null);
                         res.send(myResponse);
                     }
                 });
             }else{
-                var myResponse=responseGenerator.generate(true,"Password not provided!",400,null);
+                myResponse=responseGenerator.generate(true,"Password not provided!",400,null);
                 res.send(myResponse);
             }
         })
@@ -425,7 +423,7 @@ module.exports.controller=function(app,passport){
 
     // renders profile view if the user is authenticated
     userRouter.get('/me',isLoggedIn,function(req,res){
-        var myResponse=responseGenerator.generate(false,"User:",200,req.user);
+        myResponse=responseGenerator.generate(false,"User:",200,req.user);
         res.send(myResponse);
         // res.render('profile.ejs', { user: req.user });
     });

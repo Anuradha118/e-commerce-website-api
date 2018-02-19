@@ -1,21 +1,20 @@
-require('./../../config/config');
 const express=require('express');
 const productRouter=express.Router();
 const {ObjectID}=require('mongodb');
-var {mongoose}=require('./../../db/mongoose');
 var {Product}=require('./../models/Product');
 var responseGenerator=require('./../libs/responseGenerator');
 
 module.exports.controller=function(app){
-    
+
+    var myResponse;
     // to get all the products
     productRouter.get('/all',function(req,res){
         Product.find(function(err,docs){
             if(err){
-                var myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"some error occurred"+err,500,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"List all products",200,docs);
+                myResponse=responseGenerator.generate(false,"List all products",200,docs);
                 res.send(myResponse);
             }
         });
@@ -34,10 +33,10 @@ module.exports.controller=function(app){
         });
         newProduct.save(function(err,doc){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product is saved",200,doc);
+                myResponse=responseGenerator.generate(false,"Product is saved",200,doc);
                 res.send(myResponse);
             }
         });
@@ -47,18 +46,18 @@ module.exports.controller=function(app){
     productRouter.get('/product/:id',function(req,res){
         var id=req.params.id;
         if(!ObjectID.isValid(id)){
-            var myResponse=responseGenerator.generate(true,"Not a valid id",404,null);
+            myResponse=responseGenerator.generate(true,"Not a valid id",404,null);
             return res.send(myResponse);
         }
         Product.findOne({_id:id},function(err,prod){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);  
             }else if(!prod){
-                var myResponse=responseGenerator.generate(true,"No Product found",404,null);
+                myResponse=responseGenerator.generate(true,"No Product found",404,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product found",200,prod);
+                myResponse=responseGenerator.generate(false,"Product found",200,prod);
                 res.send(myResponse);
             }
         });
@@ -69,13 +68,13 @@ module.exports.controller=function(app){
         var pname=req.params.name;
         Product.find({name: new RegExp('.*' + pname + '.*', "i") } ,function(err,prod){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);  
             }else if(!prod){
-                var myResponse=responseGenerator.generate(true,"No Product found",404,null);
+                myResponse=responseGenerator.generate(true,"No Product found",404,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product found",200,prod);
+                myResponse=responseGenerator.generate(false,"Product found",200,prod);
                 res.send(myResponse);
             }
         })
@@ -86,13 +85,13 @@ module.exports.controller=function(app){
         var search_text=req.params.text;
         Product.find({$text: {$search: search_text}} ,function(err,prod){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);  
             }else if(!prod){
-                var myResponse=responseGenerator.generate(true,"No Product found",404,null);
+                myResponse=responseGenerator.generate(true,"No Product found",404,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product found",200,prod);
+                myResponse=responseGenerator.generate(false,"Product found",200,prod);
                 res.send(myResponse);
             }
         })
@@ -105,13 +104,13 @@ module.exports.controller=function(app){
             {'parentCategory':ctg_name},
             {'category':ctg_name}]},function(err,prod){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);  
             }else if(!prod){
-                var myResponse=responseGenerator.generate(true,"No Product(s) found for the category:"+ctg_name,404,null);
+                myResponse=responseGenerator.generate(true,"No Product(s) found for the category:"+ctg_name,404,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product(s) found",200,prod);
+                myResponse=responseGenerator.generate(false,"Product(s) found",200,prod);
                 res.send(myResponse);  
             }
         })
@@ -122,18 +121,18 @@ module.exports.controller=function(app){
         var id=req.params.id;
         var body=req.body;
         if(!ObjectID.isValid(id)){
-            var myResponse=responseGenerator.generate(true,"Not a valid id",404,null);
+            myResponse=responseGenerator.generate(true,"Not a valid id",404,null);
             return res.send(myResponse);
         }
         Product.findOneAndUpdate({_id:id},{$set:body},{new:true},function(err,prod){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);  
             }else if(!prod){
-                var myResponse=responseGenerator.generate(true,"No Product(s) found",404,null);
+                myResponse=responseGenerator.generate(true,"No Product(s) found",404,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product(s) Updated",200,prod);
+                myResponse=responseGenerator.generate(false,"Product(s) Updated",200,prod);
                 res.send(myResponse);  
             }
         })
@@ -148,13 +147,13 @@ module.exports.controller=function(app){
         }
         Product.findOneAndRemove({_id:id},function(err,prod){
             if(err){
-                var myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
+                myResponse=responseGenerator.generate(true,"Some error occurred"+err,500,null);
                 res.send(myResponse);  
             }else if(!prod){
-                var myResponse=responseGenerator.generate(true,"No Product(s) found",404,null);
+                myResponse=responseGenerator.generate(true,"No Product(s) found",404,null);
                 res.send(myResponse);
             }else{
-                var myResponse=responseGenerator.generate(false,"Product(s) Removed",200,prod);
+                myResponse=responseGenerator.generate(false,"Product(s) Removed",200,prod);
                 res.send(myResponse);  
             } 
         });
